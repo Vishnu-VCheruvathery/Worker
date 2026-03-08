@@ -34,7 +34,7 @@ const uploadWorker = new Worker('upload', async job => {
 
          const uploadsDir = path.join(process.cwd(), "uploads");
   fs.mkdirSync(uploadsDir, { recursive: true });
-
+  console.log('the upload directory: ', uploadsDir)
   const filePath = path.join(uploadsDir, fileName);
     try {
        const command = new GetObjectCommand({
