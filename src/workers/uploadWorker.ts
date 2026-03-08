@@ -88,7 +88,6 @@ const ocrWorker = new Worker(
 
     try {
       let resultTexts: ResultText[] = [];
-       const currentDir = __dirname;
        const imagesFolder = path.resolve(process.cwd(), 'images')
        fs.mkdirSync(imagesFolder, { recursive: true });
       const files = fs.readdirSync(imagesFolder)

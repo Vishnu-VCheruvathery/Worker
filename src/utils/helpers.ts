@@ -3,6 +3,7 @@ import { encode } from "gpt-tokenizer"
 import {Poppler} from "node-poppler"
 import { createWorker } from "tesseract.js"
 import path from "path";
+import fs  from 'fs'
 
 const poppler = new Poppler()
 
@@ -14,22 +15,26 @@ const poppler = new Poppler()
     },
  });
 
-const pdfToPics = async(filepath: string, name: string) => {
-       const options = {
-        pngFile: true
-       }
+const pdfToPics = async (filepath: string, name: string) => {
+  const options = {
+    pngFile: true,
+  };
 
-    
+  const imagesDir = path.resolve(process.cwd(), "images");
 
-       const currentDir = __dirname;
-       const outputFile = path.resolve(currentDir, '..', 'images', `${name}`); 
-       console.log('the images folder: ', outputFile)
-        try {
-             await poppler.pdfToCairo(filepath, outputFile ,options)
-        } catch (error) {
-            console.log('Error while creating directory:', error);
-        }
-}
+  // ensure directory exists
+  fs.mkdirSync(imagesDir, { recursive: true });
+
+  const outputFile = path.join(imagesDir, name);
+
+  console.log("images folder:", outputFile);
+
+  try {
+    await poppler.pdfToCairo(filepath, outputFile, options);
+  } catch (error) {
+    console.log("Error while creating images:", error);
+  }
+};
 
 function chunkText(text:string, maxTokens = 500, overlap=50){
     const sentences = text.split(/(?<=[.!?])\s+/);
