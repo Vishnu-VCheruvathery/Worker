@@ -32,8 +32,10 @@ const streamPipeline = promisify(pipeline)
 const uploadWorker = new Worker('upload', async job => {
     const {key,  convId, fileName, fileType} = job.data;
 
-        const currentDir = __dirname;
-const oneLevelUp = path.resolve(currentDir, '..', 'uploads', `${fileName}`);
+         const uploadsDir = path.join(process.cwd(), "uploads");
+  fs.mkdirSync(uploadsDir, { recursive: true });
+
+  const filePath = path.join(uploadsDir, fileName);
     try {
        const command = new GetObjectCommand({
         Bucket: process.env.AWS_BUCKET_NAME!,
@@ -44,11 +46,11 @@ const oneLevelUp = path.resolve(currentDir, '..', 'uploads', `${fileName}`);
 
        await streamPipeline(
         response.Body as Readable,
-        createWriteStream(oneLevelUp)
+        createWriteStream(filePath)
        )
 
       
-        await pdfToPics(oneLevelUp , fileName);
+        await pdfToPics(filePath , fileName);
         const document = new Document({
             title: fileName,
             type: fileType
@@ -64,7 +66,7 @@ const oneLevelUp = path.resolve(currentDir, '..', 'uploads', `${fileName}`);
 uploadWorker.on('completed', job => {
   const {fileName} = job.data
       const currentDir = __dirname;
-const oneLevelUp = path.resolve(currentDir, '..', 'uploads', `${fileName}`);
+const oneLevelUp = path.resolve(process.cwd(), 'uploads', `${fileName}`);
       fs.unlink(oneLevelUp, (err) => {
                         if(err){
                             console.error('Error deleting file: ', err);
@@ -87,8 +89,8 @@ const ocrWorker = new Worker(
     try {
       let resultTexts: ResultText[] = [];
        const currentDir = __dirname;
-       const imagesFolder = path.resolve(currentDir, '..', 'images')
-       console.log('the images folder in OCR: ', imagesFolder)
+       const imagesFolder = path.resolve(process.cwd(), 'images')
+       fs.mkdirSync(imagesFolder, { recursive: true });
       const files = fs.readdirSync(imagesFolder)
   .sort((a, b) => {
     const numA = parseInt(a.match(/\d+/)?.[0] ?? "0");
@@ -149,7 +151,7 @@ const ocrWorker = new Worker(
 
 ocrWorker.on('completed', job => {
   const currentDir = __dirname;
-       const imagesFolder = path.resolve(currentDir, '..', 'images')
+       const imagesFolder = path.resolve(process.cwd(), 'images')
     const files = fs.readdirSync(imagesFolder);
      files.forEach(async(file) => {
                           const imagePath = path.join(imagesFolder, file);   
